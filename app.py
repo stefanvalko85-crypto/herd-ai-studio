@@ -2,101 +2,132 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# 1. DEFINÍCIA TEXTOV (Slovník pre SK a CZ)
+# 1. NASTAVENIE STRÁNKY
+st.set_page_config(layout="wide", page_title="Herd AI Studio", page_icon="🧬")
+
+# 2. DEFINÍCIA TEXTOV (Slovník)
 lang_dict = {
     "Slovenčina": {
-        "title": "Herd AI Studio - Inteligentná Farma",
-        "sidebar_data": "📁 Zdroje dát",
-        "upload_label": "Nahrať súbor (CSV alebo Excel)",
-        "status_label": "📊 Stav stáda",
-        "demo_info": "Aktuálne vidíte ukážkové dáta. Nahrajte vlastné pre analýzu.",
-        "chat_title": "💬 AI Konzultant nad stádom",
+        "sidebar_data": "📂 ZDROJE DÁT",
+        "upload_label": "Nahrať kontrolu úžitkovosti (CSV/XLSX)",
+        "chat_title": "💬 AI AGRO KONZULTANT",
         "chat_placeholder": "Pýtajte sa na vaše stádo...",
-        "studio_title": "🛠️ Štúdio nástrojov",
+        "studio_title": "🛠️ ANALYTICKÉ ŠTÚDIO",
         "mating_tool": "🧬 Inteligentný priparovák",
-        "mating_btn": "Vytvoriť návrh párenia",
-        "prediction": "📈 Predikcia plemenných hodnôt",
-        "download_btn": "📥 Stiahnuť plán pre inseminátora (PDF)"
+        "mating_btn": "SPUSTIŤ OPTIMALIZÁCIU",
+        "prediction": "📈 Trend genetického zisku",
+        "download_btn": "📥 EXPORTOVAŤ PLÁN PÁRENIA"
     },
     "Čeština": {
-        "title": "Herd AI Studio - Inteligentní Farma",
-        "sidebar_data": "📁 Zdroje dat",
-        "upload_label": "Nahrát soubor (CSV nebo Excel)",
-        "status_label": "📊 Stav stáda",
-        "demo_info": "Aktuálně vidíte ukázková data. Nahrát vlastní pro analýzu.",
-        "chat_title": "💬 AI Konzultant nad stádem",
+        "sidebar_data": "📂 ZDROJE DAT",
+        "upload_label": "Nahrát kontrolu užitkovosti (CSV/XLSX)",
+        "chat_title": "💬 AI AGRO KONZULTANT",
         "chat_placeholder": "Ptejte se na vaše stádo...",
-        "studio_title": "🛠️ Studio nástrojů",
+        "studio_title": "🛠️ ANALYTICKÉ STUDIO",
         "mating_tool": "🧬 Inteligentní připařovák",
-        "mating_btn": "Vytvořit návrh páření",
-        "prediction": "📈 Predikce plemenných hodnot",
-        "download_btn": "📥 Stáhnout plán pro inseminátora (PDF)"
+        "mating_btn": "SPUSTIT OPTIMALIZACI",
+        "prediction": "📈 Trend genetického zisku",
+        "download_btn": "📥 EXPORTOVAT PLÁN PÁŘENÍ"
     }
 }
 
-# 2. NASTAVENIE STRÁNKY
-st.set_page_config(layout="wide", page_title="Herd AI Studio")
-
-with st.sidebar:
-    selected_lang = st.selectbox("🌍 Vyberte jazyk / Vyberte jazyk", ["Slovenčina", "Čeština"])
-    t = lang_dict[selected_lang]
-
-# --- VIZUÁLNY ŠTÝL (Tmavý režim) ---
+# 3. CUSTOM CSS PRE PROFESIONÁLNY VZHĽAD
 st.markdown("""
     <style>
-    .stApp { background-color: #0f172a; color: white; }
-    .stButton>button { width: 100%; border-radius: 8px; height: 3em; background-color: #16a34a; color: white; border: none; font-weight: bold; }
-    .stButton>button:hover { background-color: #15803d; border: none; color: white; }
+    /* Hlavné pozadie */
+    .stApp {
+        background-color: #0f172a;
+        color: #f8fafc;
+    }
+    /* Úprava bočného panelu */
+    [data-testid="stSidebar"] {
+        background-color: #1e293b;
+        border-right: 1px solid #334155;
+    }
+    /* Karty a kontajnery */
+    div.stChatMessage {
+        background-color: #1e293b;
+        border-radius: 15px;
+        border: 1px solid #334155;
+        margin-bottom: 10px;
+    }
+    /* Tlačidlá - NotebookLM Štýl */
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        height: 3.5em;
+        background-color: #10b981;
+        color: white;
+        border: none;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    /* Expander (harmonika) */
+    .streamlit-expanderHeader {
+        background-color: #1e293b;
+        border-radius: 10px;
+        border: 1px solid #334155;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. ROZLOŽENIE APLIKÁCIE ---
+# 4. LOGIKA JAZYKA
 with st.sidebar:
+    st.image("https://www.svgrepo.com/show/484437/cow.svg", width=60) # Provizórne logo
+    st.title("Herd AI")
+    selected_lang = st.selectbox("🌍 Jazyk / Jazyk", ["Slovenčina", "Čeština"])
+    t = lang_dict[selected_lang]
     st.divider()
-    st.title(t["sidebar_data"])
+    st.subheader(t["sidebar_data"])
     uploaded_file = st.file_uploader(t["upload_label"], type=["csv", "xlsx"])
     
     if uploaded_file:
-        df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith('csv') else pd.read_excel(uploaded_file)
-        st.success(f"Dáta: {len(df)} zvierat")
+        st.success("Dáta pripravené")
     else:
-        # Demo dáta pre štart
-        df = pd.DataFrame({
-            'Ušné číslo': [f"SK {np.random.randint(1000, 9999)}" for _ in range(5)],
-            'Mlieko (kg)': np.random.randint(7000, 11000, 5),
-            'Somatické bunky': np.random.randint(80, 400, 5)
-        })
-        st.info(t["demo_info"])
+        st.info("Nahrajte dáta pre analýzu")
 
-col_chat, col_studio = st.columns([2, 1])
+# 5. ROZLOŽENIE PLOCHY
+col_main, col_tools = st.columns([2.2, 1])
 
-# --- STRED: CHAT ---
-with col_chat:
-    st.subheader(t["chat_title"])
-    if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Dobrý deň! Som váš digitálny šľachtiteľ. Čo vás dnes zaujíma?"}]
-
-    for m in st.session_state.messages:
-        with st.chat_message(m["role"]): st.write(m["content"])
+with col_main:
+    st.markdown(f"### {t['chat_title']}")
+    
+    # Simulačné okno chatu
+    chat_container = st.container()
+    with chat_container:
+        if "messages" not in st.session_state:
+            st.session_state.messages = [{"role": "assistant", "content": "Systém pripravený. Čakám na vaše inštrukcie k stádu."}]
+        
+        for m in st.session_state.messages:
+            with st.chat_message(m["role"]):
+                st.write(m["content"])
 
     if prompt := st.chat_input(t["chat_placeholder"]):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"): st.write(prompt)
         
-        response = f"Analyzujem vaše dáta ohľadom: '{prompt}'. Táto funkcia bude aktívna po prepojení s AI mozgom."
+        response = "Spracovávam genetické dáta... (Tento model bude plne aktívny po prepojení Gemini API)."
         st.session_state.messages.append({"role": "assistant", "content": response})
         with st.chat_message("assistant"): st.write(response)
 
-# --- VPRAVO: ŠTÚDIO ---
-with col_studio:
-    st.subheader(t["studio_title"])
-    with st.expander(t["mating_tool"], expanded=True):
-        st.selectbox("Priorita", ["Produkcia", "Zdravie", "Exteriér"])
+with col_tools:
+    st.markdown(f"### {t['studio_title']}")
+    
+    with st.expander(f"**{t['mating_tool']}**", expanded=True):
+        st.write("Cieľ šľachtenia:")
+        st.select_slider("Zameranie", options=["Produkcia", "Vyvážené", "Zdravie"])
         if st.button(t["mating_btn"]):
-            st.success("Analýza prebieha...")
-            st.table(df.head(3))
-    
-    with st.expander(t["prediction"]):
-        st.line_chart(np.random.randn(15, 1).cumsum())
-    
+            st.info("Generujem optimálne páry...")
+            
+    with st.expander(f"**{t['prediction']}**"):
+        chart_data = pd.DataFrame(np.random.randn(20, 1).cumsum(), columns=['Index'])
+        st.line_chart(chart_data)
+
+    st.divider()
     st.button(t["download_btn"])
