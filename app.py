@@ -2,132 +2,132 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# 1. NASTAVENIE STRÁNKY
+# 1. KONFIGURÁCIA A ŠTÝL
 st.set_page_config(layout="wide", page_title="Herd AI Studio", page_icon="🧬")
 
-# 2. DEFINÍCIA TEXTOV (Slovník)
-lang_dict = {
-    "Slovenčina": {
-        "sidebar_data": "📂 ZDROJE DÁT",
-        "upload_label": "Nahrať kontrolu úžitkovosti (CSV/XLSX)",
-        "chat_title": "💬 AI AGRO KONZULTANT",
-        "chat_placeholder": "Pýtajte sa na vaše stádo...",
-        "studio_title": "🛠️ ANALYTICKÉ ŠTÚDIO",
-        "mating_tool": "🧬 Inteligentný priparovák",
-        "mating_btn": "SPUSTIŤ OPTIMALIZÁCIU",
-        "prediction": "📈 Trend genetického zisku",
-        "download_btn": "📥 EXPORTOVAŤ PLÁN PÁRENIA"
-    },
-    "Čeština": {
-        "sidebar_data": "📂 ZDROJE DAT",
-        "upload_label": "Nahrát kontrolu užitkovosti (CSV/XLSX)",
-        "chat_title": "💬 AI AGRO KONZULTANT",
-        "chat_placeholder": "Ptejte se na vaše stádo...",
-        "studio_title": "🛠️ ANALYTICKÉ STUDIO",
-        "mating_tool": "🧬 Inteligentní připařovák",
-        "mating_btn": "SPUSTIT OPTIMALIZACI",
-        "prediction": "📈 Trend genetického zisku",
-        "download_btn": "📥 EXPORTOVAT PLÁN PÁŘENÍ"
-    }
-}
-
-# 3. CUSTOM CSS PRE PROFESIONÁLNY VZHĽAD
+# HLAVNÝ VIZUÁLNY ŠTÝL (NotebookLM Look)
 st.markdown("""
     <style>
-    /* Hlavné pozadie */
-    .stApp {
-        background-color: #0f172a;
-        color: #f8fafc;
+    /* Pozadie a písmo */
+    .stApp { background-color: #0b0e14; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+    
+    /* Horná lišta / Header */
+    .main-header { text-align: center; padding: 20px; border-bottom: 1px solid #1e293b; margin-bottom: 20px; }
+    .main-header h1 { color: #f8fafc; font-size: 2.2rem; font-weight: 800; margin-bottom: 5px; }
+    .main-header p { color: #94a3b8; font-size: 1.1rem; }
+
+    /* Panely (Stĺpce) */
+    [data-testid="column"] { 
+        background-color: #111827; 
+        border-radius: 16px; 
+        padding: 15px !important; 
+        border: 1px solid #1f2937;
     }
-    /* Úprava bočného panelu */
-    [data-testid="stSidebar"] {
+
+    /* NotebookLM Karty zdrojov (Vľavo) */
+    .source-card {
         background-color: #1e293b;
-        border-right: 1px solid #334155;
-    }
-    /* Karty a kontajnery */
-    div.stChatMessage {
-        background-color: #1e293b;
-        border-radius: 15px;
-        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 12px;
         margin-bottom: 10px;
+        border: 1px solid #334155;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
-    /* Tlačidlá - NotebookLM Štýl */
+
+    /* Chatovacie bubliny (Stred) */
+    .stChatMessage { background-color: #1e293b !important; border-radius: 15px !important; border: 1px solid #334155 !important; }
+
+    /* Tlačidlá (Vpravo) */
     .stButton>button {
         width: 100%;
-        border-radius: 10px;
+        border-radius: 12px;
         height: 3.5em;
-        background-color: #10b981;
-        color: white;
-        border: none;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
+        background-color: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        font-weight: 600;
+        text-align: left;
+        padding-left: 15px;
+        transition: all 0.2s ease;
     }
     .stButton>button:hover {
-        background-color: #059669;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        background-color: #334155;
+        border-color: #10b981;
+        color: #10b981;
     }
-    /* Expander (harmonika) */
-    .streamlit-expanderHeader {
-        background-color: #1e293b;
-        border-radius: 10px;
-        border: 1px solid #334155;
-    }
+
+    /* Odstránenie Streamlit menu */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# 4. LOGIKA JAZYKA
-with st.sidebar:
-    st.image("https://www.svgrepo.com/show/484437/cow.svg", width=60) # Provizórne logo
-    st.title("Herd AI")
-    selected_lang = st.selectbox("🌍 Jazyk / Jazyk", ["Slovenčina", "Čeština"])
-    t = lang_dict[selected_lang]
-    st.divider()
-    st.subheader(t["sidebar_data"])
-    uploaded_file = st.file_uploader(t["upload_label"], type=["csv", "xlsx"])
+# --- HORNÝ NÁPIS (HEADER) ---
+st.markdown("""
+    <div class="main-header">
+        <h1>Herd AI Studio</h1>
+        <p>tvoj AI reprodukčný poradca</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- ROZDELENIE DO 3 STĹPCOV ---
+col_sources, col_chat, col_tools = st.columns([0.8, 2, 0.8])
+
+# 1. STĹPEC: ZDROJE (ĽAVÁ STRANA)
+with col_sources:
+    st.markdown("### 📂 Zdroje")
+    uploaded_files = st.file_uploader("Nahrať dáta", accept_multiple_files=True, label_visibility="collapsed")
     
-    if uploaded_file:
-        st.success("Dáta pripravené")
+    if uploaded_files:
+        for f in uploaded_files:
+            st.markdown(f"""
+                <div class="source-card">
+                    📄 <span>{f.name}</span>
+                </div>
+            """, unsafe_allow_html=True)
     else:
-        st.info("Nahrajte dáta pre analýzu")
+        st.markdown("<p style='color:#64748b; font-size:0.9rem;'>Žiadne nahraté zdroje.</p>", unsafe_allow_html=True)
+        # Demo zdroje
+        for name in ["Kontrola_uzitkovosti_2026.csv", "Genomika_jalovice.xlsx"]:
+            st.markdown(f"<div class='source-card' style='opacity:0.5;'>📄 {name}</div>", unsafe_allow_html=True)
 
-# 5. ROZLOŽENIE PLOCHY
-col_main, col_tools = st.columns([2.2, 1])
+# 2. STĹPEC: CHAT (STRED)
+with col_chat:
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{"role": "assistant", "content": "Vyberte zdroje a môžeme začať s analýzou vášho stáda."}]
 
-with col_main:
-    st.markdown(f"### {t['chat_title']}")
-    
-    # Simulačné okno chatu
-    chat_container = st.container()
-    with chat_container:
-        if "messages" not in st.session_state:
-            st.session_state.messages = [{"role": "assistant", "content": "Systém pripravený. Čakám na vaše inštrukcie k stádu."}]
-        
-        for m in st.session_state.messages:
-            with st.chat_message(m["role"]):
-                st.write(m["content"])
+    # Zobrazenie správ
+    for m in st.session_state.messages:
+        with st.chat_message(m["role"]):
+            st.write(m["content"])
 
-    if prompt := st.chat_input(t["chat_placeholder"]):
+    # Fixný chat input dole
+    if prompt := st.chat_input("Pýtajte sa na vaše stádo..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"): st.write(prompt)
         
-        response = "Spracovávam genetické dáta... (Tento model bude plne aktívny po prepojení Gemini API)."
+        response = f"Analyzujem vaše zdroje pre odpoveď na: '{prompt}'..."
         st.session_state.messages.append({"role": "assistant", "content": response})
         with st.chat_message("assistant"): st.write(response)
 
+# 3. STĹPEC: NÁSTROJE (PRAVÁ STRANA)
 with col_tools:
-    st.markdown(f"### {t['studio_title']}")
+    st.markdown("### 🛠️ Nástroje")
     
-    with st.expander(f"**{t['mating_tool']}**", expanded=True):
-        st.write("Cieľ šľachtenia:")
-        st.select_slider("Zameranie", options=["Produkcia", "Vyvážené", "Zdravie"])
-        if st.button(t["mating_btn"]):
-            st.info("Generujem optimálne páry...")
-            
-    with st.expander(f"**{t['prediction']}**"):
-        chart_data = pd.DataFrame(np.random.randn(20, 1).cumsum(), columns=['Index'])
-        st.line_chart(chart_data)
-
-    st.divider()
-    st.button(t["download_btn"])
+    if st.button("🎯 Zadať cieľ"):
+        st.toast("Nastavenie cieľa otvorené")
+        
+    if st.button("🔍 Zhodnoť stádo"):
+        st.toast("Prebieha analýza stáda...")
+        
+    if st.button("🐂 Nájdi býkov"):
+        st.toast("Prehľadávam katalógy býkov...")
+        
+    if st.button("📋 Vytvor priparovací plán"):
+        st.toast("Generujem optimálne párenie...")
+    
+    st.markdown("---")
+    st.markdown("<p style='color:#64748b; font-size:0.8rem; text-align:center;'>Vytvorené pre moderných farmárov</p>", unsafe_allow_html=True)
